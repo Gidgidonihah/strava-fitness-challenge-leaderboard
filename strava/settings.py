@@ -1,24 +1,21 @@
 """
 Django settings for strava project.
 """
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
+from strava.private_settings import *
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'i=bc(3sltj&y4qn)dio4m9bieb&t3d6f-r8hej%^9w9@g4v0b-'
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 INSTALLED_APPS = (
-    'front',
+    'strava.apps.front',
     'django.contrib.auth',
     'django.contrib.contenttypes',
 )
@@ -49,9 +46,18 @@ MIDDLEWARE_CLASSES = (
     # We don't need no stinking middleware!
 )
 
-# Strava settings
-STRAVA_CLIENT_ID = ''
-STRAVA_CLIENT_SECRET = ''
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+
+# Strava settings (actually stored in private_settings.py)
+# STRAVA_CLIENT_ID = ''
+# STRAVA_CLIENT_SECRET = ''
 # The following are hardcoded because quick and dirty
-STRAVA_USER_ACCESS_TOKEN = ''
-DFC_CLUB_ID = ''  # Doba Fitness Challenge club id.
+# TODO: implement so that these aren't needed in this file
+# STRAVA_CHALLENGE_START_DATE = datetime.datetime(2016, 1, 1)
+# STRAVA_CHALLENGE_END_DATE = datetime.datetime(2016, 5, 30)
+# STRAVA_CHALLENGE_CLUB_ID = '12345'  # Not a real id
