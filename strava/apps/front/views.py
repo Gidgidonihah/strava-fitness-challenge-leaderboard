@@ -6,6 +6,7 @@ import operator
 from collections import OrderedDict
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
 from django.views.generic import View
@@ -59,6 +60,7 @@ class AuthorizedView(View):
             athlete = Athlete(strava_id=strava_athlete.id, strava_token=access_token)
         athlete.save()
 
+        cache.delete('summary')
         return HttpResponseRedirect(reverse_lazy('strava-summary'))
 
 
@@ -70,7 +72,14 @@ class SummaryView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(SummaryView, self).get_context_data(**kwargs)
-        context['times'] = self.get_activity_summary()
+
+        summary = cache.get('summary')
+        if summary:
+            context['times'] = summary
+        else:
+            context['times'] = self.get_activity_summary()
+            cache.set('summary', context['times'], 60)
+
         return context
 
 
