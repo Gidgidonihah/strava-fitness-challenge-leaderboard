@@ -33,7 +33,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for name, time in times.iteritems %}
+                {% for name, time in times.items %}
                     <tr>
                         <th>
                             {{ name }}
@@ -41,6 +41,8 @@
                         <td>
                             {% if time %}
                                 {{ time }}
+                            {% elif time is not None %}
+                                No time recorded
                             {% else %}
                                 Not Authorized
                             {% endif %}

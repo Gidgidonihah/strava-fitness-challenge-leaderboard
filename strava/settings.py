@@ -3,7 +3,7 @@ Django settings for strava project.
 """
 import os
 
-from strava.private_settings import *
+from strava.private_settings import *  # noqa: F401
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -15,7 +15,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 INSTALLED_APPS = (
-    'strava.apps.front',
+    'apps.front',
     'django.contrib.auth',
     'django.contrib.contenttypes',
 )
@@ -59,6 +59,12 @@ CACHES = {
         'LOCATION': '127.0.0.1:11211',
     }
 }
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+    },
+]
 
 # Strava settings (actually stored in private_settings.py)
 # STRAVA_CLIENT_ID = ''

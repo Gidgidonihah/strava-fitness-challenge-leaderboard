@@ -2,7 +2,7 @@
 
 from django.conf.urls import url
 
-from strava.apps.front import views
+from apps.front import views
 
 # pylint: disable=invalid-name
 urlpatterns = [

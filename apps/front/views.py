@@ -1,7 +1,6 @@
 """ Views for strava integration. """
 from __future__ import unicode_literals
 
-import datetime
 import operator
 from collections import OrderedDict
 
@@ -82,7 +81,6 @@ class SummaryView(TemplateView):
 
         return context
 
-
     def get_activity_summary(self):
         """
         Get full activity summary.
@@ -125,6 +123,7 @@ class SummaryView(TemplateView):
     def _get_athlete_summary(self, athlete_id):
         """ Get a total activity time per athlete. """
         tokens = self._get_authed_athletes()
+        total = 0
 
         if athlete_id in tokens:
             times = []
@@ -137,7 +136,8 @@ class SummaryView(TemplateView):
             for activity in activities:
                 times.append(activity.moving_time)
 
-            total = reduce(operator.add, times)
+            for time in times:
+                total += time
         else:
             total = None
 
@@ -155,8 +155,8 @@ class SummaryView(TemplateView):
 
         authed = OrderedDict()
         unauthed = OrderedDict()
-        for name, total in summary.iteritems():
-            if type(total) is datetime.timedelta:
+        for name, total in summary.items():
+            if total is not None:
                 authed[name] = total
             else:
                 unauthed[name] = total
@@ -164,4 +164,5 @@ class SummaryView(TemplateView):
         sorted_athletes = OrderedDict(
             sorted(authed.items(), key=operator.itemgetter(1), reverse=True) + sorted(unauthed.items())
         )
+
         return sorted_athletes
