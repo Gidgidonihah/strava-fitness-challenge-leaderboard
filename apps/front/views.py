@@ -1,6 +1,7 @@
 """ Views for strava integration. """
 from __future__ import unicode_literals
 
+import datetime
 import operator
 from collections import OrderedDict
 
@@ -24,9 +25,11 @@ class AuthorizeView(View):
 
         client = Client()
 
-        return_uri = 'http://{}{}'.format(
+        return_uri = 'http://{}{}?start_date={}&end_date={}'.format(
             request.META['HTTP_HOST'],
-            reverse_lazy('strava-authorized')
+            reverse_lazy('strava-authorized'),
+            request.GET.get('start_date'),
+            request.GET.get('end_date'),
         )
         authorize_url = client.authorization_url(
             client_id=settings.STRAVA_CLIENT_ID,
@@ -59,8 +62,14 @@ class AuthorizedView(View):
             athlete = Athlete(strava_id=strava_athlete.id, strava_token=access_token)
         athlete.save()
 
-        cache.delete('summary')
-        return HttpResponseRedirect(reverse_lazy('strava-summary'))
+        cache_key = _get_cache_key(request)
+        cache.delete(cache_key)
+        redir_url = '{}?start_date={}&end_date={}'.format(
+            reverse_lazy('strava-summary'),
+            _get_start_date(request),
+            _get_end_date(request)
+        )
+        return HttpResponseRedirect(redir_url)
 
 
 class SummaryView(TemplateView):
@@ -72,12 +81,17 @@ class SummaryView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(SummaryView, self).get_context_data(**kwargs)
 
-        summary = cache.get('summary')
+        cache_key = _get_cache_key(self.request)
+
+        summary = cache.get(cache_key)
         if summary:
             context['times'] = summary
         else:
             context['times'] = self.get_activity_summary()
-            cache.set('summary', context['times'], 60)
+            cache.set(cache_key, context['times'], 60)
+
+        context['start_date'] = _get_start_date(self.request)
+        context['end_date'] = _get_end_date(self.request)
 
         return context
 
@@ -123,19 +137,19 @@ class SummaryView(TemplateView):
     def _get_athlete_summary(self, athlete_id):
         """ Get a total activity time per athlete. """
         tokens = self._get_authed_athletes()
-        total = 0
 
         if athlete_id in tokens:
             times = []
 
             client = Client(access_token=tokens.get(athlete_id))
             activities = client.get_activities(
-                after=settings.STRAVA_CHALLENGE_START_DATE,
-                before=settings.STRAVA_CHALLENGE_END_DATE,
+                after=_get_start_date(self.request),
+                before=_get_end_date(self.request),
             )
             for activity in activities:
                 times.append(activity.moving_time)
 
+            total = datetime.timedelta()
             for time in times:
                 total += time
         else:
@@ -166,3 +180,38 @@ class SummaryView(TemplateView):
         )
 
         return sorted_athletes
+
+
+def _get_cache_key(request):
+    start_date = _get_start_date(request)
+    end_date = _get_end_date(request)
+
+    return 'summary_{}_to_{}'.format(start_date.replace('-', ''), end_date.replace('-', ''))
+
+
+def _get_start_date(request):
+    try:
+        day = request.GET.get('start_date', '')
+        start = datetime.datetime.strptime(day, '%Y-%m-%d')
+        start_date = start.strftime('%Y-%m-%d')
+    except ValueError:
+        # Default to start of week
+        now = datetime.datetime.now()
+        default = now - datetime.timedelta(days=(now.weekday()+1))
+        start_date = default.strftime('%Y-%m-%d')
+
+    return start_date
+
+
+def _get_end_date(request):
+    try:
+        day = request.GET.get('end_date', '')
+        end = datetime.datetime.strptime(day, '%Y-%m-%d')
+        end_date = end.strftime('%Y-%m-%d')
+    except ValueError:
+        # Default to end of week
+        now = datetime.datetime.now()
+        default = now + datetime.timedelta(days=5)
+        end_date = default.strftime('%Y-%m-%d')
+
+    return end_date

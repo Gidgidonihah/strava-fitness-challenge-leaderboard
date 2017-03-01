@@ -3,8 +3,7 @@
     <title>Strava Leaderboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <style> html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;font-size:10px;-webkit-tap-highlight-color:transparent}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}/*! Source: https://github.com/h5bp/html5-boilerplate/blob/master/src/css/main.css */@media print{*,:after,:before{background:0 0!important;color:#000!important;-webkit-box-shadow:none!important;box-shadow:none!important;text-shadow:none!important}thead{display:table-header-group}tr{page-break-inside:avoid}.table{border-collapse:collapse!important}.table td,.table th{background-color:#fff!important}}@font-face{font-family:'Glyphicons Halflings';src:url(../fonts/glyphicons-halflings-regular.eot);src:url(../fonts/glyphicons-halflings-regular.eot?#iefix) format('embedded-opentype'),url(../fonts/glyphicons-halflings-regular.woff2) format('woff2'),url(../fonts/glyphicons-halflings-regular.woff) format('woff'),url(../fonts/glyphicons-halflings-regular.ttf) format('truetype'),url(../fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular) format('svg')}*,:after,:before{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}body{margin:0;font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.42857143;color:#3e3f3a;background-color:#fff}h1{margin:20px 0 10px;font-family:inherit;font-weight:400;line-height:1.1;color:inherit;font-size:36px}.page-header{padding-bottom:9px;margin:40px 0 20px;border-bottom:1px solid #f8f5f0}.container{margin-right:auto;margin-left:auto;padding-left:15px;padding-right:15px}@media (min-width:768px){.container{width:750px}}@media (min-width:992px){.container{width:970px}}@media (min-width:1200px){.container{width:1170px}}.row{margin-left:-15px;margin-right:-15px}.col-lg-8,.col-md-7,.col-sm-6{position:relative;min-height:1px;padding-left:15px;padding-right:15px}@media (min-width:768px){.col-sm-6{float:left;width:50%}}@media (min-width:992px){.col-md-7{float:left;width:58.33333333%}}@media (min-width:1200px){.col-lg-8{float:left;width:66.66666667%}}table{background-color:transparent}th{text-align:left}.table{width:100%;max-width:100%;margin-bottom:20px}.table>tbody>tr>td,.table>tbody>tr>th,.table>thead>tr>th{padding:8px;line-height:1.42857143;vertical-align:top;border-top:1px solid #dfd7ca}.table>thead>tr>th{vertical-align:bottom;border-bottom:2px solid #dfd7ca}.table>thead:first-child>tr:first-child>th{border-top:0}.table-hover>tbody>tr:hover,.table-striped>tbody>tr:nth-of-type(odd){background-color:#f8f5f0}.form-control::-moz-placeholder{color:#dfd7ca;opacity:1}.form-control:-ms-input-placeholder{color:#dfd7ca}.form-control::-ms-expand{border:0;background-color:transparent}.container:after,.container:before,.row:after,.row:before{content:" ";display:table}.container:after,.row:after{clear:both}@-ms-viewport{width:device-width}.fr{float:right;margin:0 0 1em 1em}.btn{background:#1cb841;border-radius:4px;border:0 transparent;color:#fff;font-size:100%;padding:.5em 1em;text-decoration:none;text-shadow:0 1px 1px rgba(0,0,0,.2)}.btn:hover{background-image:linear-gradient(transparent,rgba(0,0,0,.05) 40%,rgba(0,0,0,.1))}.btn:active{box-shadow:0 0 0 1px rgba(0,0,0,.15) inset,0 0 6px rgba(0,0,0,.2) inset}
-    </style>
+    <link rel="stylesheet" href="https://cdn.rawgit.com/thomaspark/bootswatch/4b0d3762f309326a6d66fa4ea18945a7fc11f8ef/sandstone/bootstrap.min.css">
 </head>
 <body>
 
@@ -18,14 +17,32 @@
             </div>
         </div>
 
-        <h3> Don't see your total in the list? </h3>
-        <p>
-            <a href="{% url 'strava-auth' %}" class="fr btn">Authorize through Strava</a>
-            That means you're not currently eligible to win.
-            Sign in through Strava to become eligible and show up on this leader board.
-        </p>
+        <div style="margin: 2em 0 4em">
+            <h3> Don't see your total in the list? </h3>
+            <p>
+                <a href="{% url 'strava-auth' %}?start_date={{ start_date }}&end_date={{ end_date }}"
+                    class="pull-right btn btn-success">Authorize through Strava</a>
+                That means you're not currently eligible to win.
+                Sign in through Strava to become eligible and show up on this leader board.
+            </p>
+        </div>
 
-        <table class="table table-striped table-hover">
+        <form class="form-inline pull-right">
+            <div class="form-group">
+                <label class="sr-only" for="exampleInputAmount">From</label>
+                <div class="input-group">
+                    <label class="input-group-addon">From</label>
+                    <input type="date" name="start_date" placeholder="mm/dd/yyyy" value="{{ start_date }}" class="form-control">
+                </div>
+                <div class="input-group">
+                    <label class="input-group-addon">To</label>
+                    <input type="date" name="end_date" placeholder="mm/dd/yyyy" value="{{ end_date }}" class="form-control">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-default">Change Date Range</button>
+        </form>
+
+        <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -44,7 +61,7 @@
                             {% elif time is not None %}
                                 No time recorded
                             {% else %}
-                                Not Authorized
+                                <span class="text-muted">Not Authorized</span>
                             {% endif %}
                         </td>
                     </tr>
