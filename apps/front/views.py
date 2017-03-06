@@ -144,7 +144,7 @@ class SummaryView(TemplateView):
             client = Client(access_token=tokens.get(athlete_id))
             activities = client.get_activities(
                 after=_get_start_date(self.request),
-                before=_get_end_date(self.request),
+                before=_get_end_date(self.request, include_full_day=True),
             )
             for activity in activities:
                 times.append(activity.moving_time)
@@ -197,13 +197,12 @@ def _get_start_date(request):
     except ValueError:
         # Default to start of week
         now = datetime.datetime.now()
-        default = now - datetime.timedelta(days=(now.weekday()+1))
+        default = now - datetime.timedelta(days=(now.weekday()))
         start_date = default.strftime('%Y-%m-%d')
-
     return start_date
 
 
-def _get_end_date(request):
+def _get_end_date(request, include_full_day=False):
     try:
         day = request.GET.get('end_date', '')
         end = datetime.datetime.strptime(day, '%Y-%m-%d')
@@ -211,7 +210,11 @@ def _get_end_date(request):
     except ValueError:
         # Default to end of week
         now = datetime.datetime.now()
-        default = now + datetime.timedelta(days=5)
+        default = now + datetime.timedelta(days=6)
         end_date = default.strftime('%Y-%m-%d')
+
+    if include_full_day:
+        full_end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d') + datetime.timedelta(days=1)
+        end_date = full_end_date.strftime('%Y-%m-%d')
 
     return end_date
