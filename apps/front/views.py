@@ -88,7 +88,7 @@ class SummaryView(TemplateView):
             context['times'] = summary
         else:
             context['times'] = self.get_activity_summary()
-            cache.set(cache_key, context['times'], 60)
+            cache.set(cache_key, context['times'], 60*15)  # 15 minute cache
 
         context['start_date'] = _get_start_date(self.request)
         context['end_date'] = _get_end_date(self.request)
